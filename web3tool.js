@@ -360,7 +360,17 @@ async function connectWallet() {
         if (accounts && accounts.length > 0) {
             isWalletConnected = true;
             const shortAddress = `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
-            document.getElementById('walletStatus').textContent = shortAddress;
+            
+            // 创建钱包状态下拉菜单
+            const walletStatus = document.getElementById('walletStatus');
+            walletStatus.innerHTML = `
+                <span>${shortAddress}</span>
+                <div class="wallet-dropdown">
+                    <button onclick="switchNetwork()" class="dropdown-item">切换网络</button>
+                    <button onclick="disconnectWallet()" class="dropdown-item">断开钱包</button>
+                </div>
+            `;
+            walletStatus.classList.add('connected');
 
             // 连接成功后禁用私钥输入框并显示提示
             const privateKeyInput = document.getElementById('privateKey');
@@ -383,6 +393,68 @@ async function connectWallet() {
         console.error('Wallet connection error:', error);
         alert('连接钱包失败: ' + error.message);
         return null;
+    }
+}
+
+// 添加断开钱包功能
+async function disconnectWallet() {
+    isWalletConnected = false;
+    const walletStatus = document.getElementById('walletStatus');
+    walletStatus.innerHTML = translations[currentLang].connectWallet;
+    walletStatus.classList.remove('connected');
+
+    // 启用私钥输入
+    const privateKeyInput = document.getElementById('privateKey');
+    if (privateKeyInput) {
+        privateKeyInput.value = '';
+        privateKeyInput.disabled = false;
+        privateKeyInput.style.backgroundColor = '';
+        privateKeyInput.style.color = '';
+    }
+}
+
+// 添加网络切换功能
+async function switchNetwork() {
+    try {
+        const chainSelect = document.getElementById('chainSelect');
+        const selectedChain = chainConfigs[chainSelect.value];
+        
+        if (!selectedChain) {
+            throw new Error('未选择有效的网络');
+        }
+
+        try {
+            // 尝试切换到选定的网络
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: selectedChain.chainId }],
+            });
+        } catch (switchError) {
+            // 如果网络不存在，则添加网络
+            if (switchError.code === 4902) {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: selectedChain.chainId,
+                        chainName: selectedChain.name,
+                        nativeCurrency: {
+                            name: selectedChain.symbol,
+                            symbol: selectedChain.symbol,
+                            decimals: 18
+                        },
+                        rpcUrls: [selectedChain.rpcUrl],
+                        blockExplorerUrls: [selectedChain.explorer]
+                    }]
+                });
+            } else {
+                throw switchError;
+            }
+        }
+        
+        log(`已切换到 ${selectedChain.name}`, 'success');
+    } catch (error) {
+        log(`切换网络失败: ${error.message}`, 'error');
+        console.error('Network switch failed:', error);
     }
 }
 

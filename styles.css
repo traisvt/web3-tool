@@ -424,4 +424,50 @@ label {
     .stats-container {
         grid-template-columns: 1fr;
     }
+}
+
+/* 添加钱包状态下拉菜单样式 */
+.wallet-btn.connected {
+    position: relative;
+}
+
+.wallet-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+    min-width: 150px;
+}
+
+.wallet-btn.connected:hover .wallet-dropdown {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.dropdown-item:hover {
+    background-color: var(--background);
+}
+
+.dropdown-item:first-child {
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.dropdown-item:last-child {
+    border-radius: 0 0 0.5rem 0.5rem;
 } 
