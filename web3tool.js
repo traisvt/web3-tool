@@ -362,33 +362,19 @@ async function connectWallet() {
             const shortAddress = `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
             document.getElementById('walletStatus').textContent = shortAddress;
 
-            // 连接成功后隐藏私钥输入框
-            const privateKeyGroup = document.querySelector('.form-group:has(#privateKey)');
-            if (privateKeyGroup) {
-                privateKeyGroup.style.display = 'none';
+            // 连接成功后禁用私钥输入框并显示提示
+            const privateKeyInput = document.getElementById('privateKey');
+            if (privateKeyInput) {
+                privateKeyInput.value = '已连接钱包，无需输入私钥';
+                privateKeyInput.disabled = true;
+                privateKeyInput.style.backgroundColor = '#f5f5f5';
+                privateKeyInput.style.color = '#666';
             }
 
             // 设置事件监听器
             if (window.ethereum) {
                 window.ethereum.on('accountsChanged', handleAccountsChanged);
                 window.ethereum.on('chainChanged', handleChainChanged);
-            }
-
-            // 检查并切换网络
-            try {
-                const chainId = await web3Instance.eth.getChainId();
-                console.log('Current chain ID:', chainId);
-                
-                // 如果需要切换到特定网络，可以在这里添加
-                // 例如切换到 Ethereum Mainnet
-                if (chainId !== 1) {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0x1' }],
-                    });
-                }
-            } catch (error) {
-                console.error('Network switch failed:', error);
             }
 
             return accounts[0];
@@ -404,6 +390,15 @@ async function connectWallet() {
 async function initializePage() {
     try {
         console.log('Initializing page...');
+        
+        // 检查是否已连接钱包
+        if (window.ethereum) {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            if (accounts.length > 0) {
+                // 如果已经连接了钱包，自动连接
+                await connectWallet();
+            }
+        }
         
         // 初始化链选择器
         const chainSelect = document.getElementById('chainSelect');
@@ -639,15 +634,32 @@ function getPriceElementId(symbol) {
 // 处理账户变化
 function handleAccountsChanged(accounts) {
     console.log('Accounts changed:', accounts);
+    const privateKeyInput = document.getElementById('privateKey');
+    
     if (accounts.length === 0) {
         // 用户断开了钱包
         isWalletConnected = false;
         document.getElementById('walletStatus').textContent = translations[currentLang].connectWallet;
-        document.querySelector('.form-group:has(#privateKey)').style.display = 'block';
+        
+        // 启用私钥输入
+        if (privateKeyInput) {
+            privateKeyInput.value = '';
+            privateKeyInput.disabled = false;
+            privateKeyInput.style.backgroundColor = '';
+            privateKeyInput.style.color = '';
+        }
     } else {
         // 更新当前连接的账户
         const shortAddr = `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
         document.getElementById('walletStatus').textContent = shortAddr;
+        
+        // 禁用私钥输入
+        if (privateKeyInput) {
+            privateKeyInput.value = '已连接钱包，无需输入私钥';
+            privateKeyInput.disabled = true;
+            privateKeyInput.style.backgroundColor = '#f5f5f5';
+            privateKeyInput.style.color = '#666';
+        }
     }
 }
 

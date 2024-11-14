@@ -13,7 +13,7 @@
 
 ## 使用方法
 
-1. 访问 https://YOUR_USERNAME.github.io/REPO_NAME
+1. 访问 https://traisvt.github.io/web3-tool/
 2. 选择要使用的公链
 3. 输入合约地址和其他参数
 4. 连接 MetaMask 或输入私钥
