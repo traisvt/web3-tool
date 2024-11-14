@@ -4,19 +4,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Web3 Transaction Tool</title>
+    <link rel="stylesheet" href="styles.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- 你的样式文件 -->
-    <link rel="stylesheet" href="styles.css">
-    <!-- Web3.js -->
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
 </head>
 <body>
-    <!-- 这里放原来 index.html 的 body 内容 -->
-    
-    <!-- 你的 JavaScript 文件 -->
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <img src="./logo.png" alt="Logo" class="logo">
+            <span class="brand">Web3 Tool</span>
+        </div>
+        <div class="nav-right">
+            <button id="languageToggle" class="icon-btn">
+                <i class="fas fa-globe"></i>
+            </button>
+            <button id="connectWallet" class="wallet-btn">
+                <i class="fas fa-wallet"></i>
+                <span id="walletStatus" data-i18n="connectWallet">连接钱包</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="container">
+        <!-- 统计卡片 -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-gas-pump"></i>
+                </div>
+                <div class="stat-title" data-i18n="gasPrice">Gas 价格</div>
+                <div class="stat-value" id="gasPrice">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fab fa-ethereum"></i>
+                </div>
+                <div class="stat-title" data-i18n="ethPrice">ETH 价格</div>
+                <div class="stat-value" id="ethPrice">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fab fa-bitcoin"></i>
+                </div>
+                <div class="stat-title">BTC 价格</div>
+                <div class="stat-value" id="btcPrice">--</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-sun"></i>
+                </div>
+                <div class="stat-title">SOL 价格</div>
+                <div class="stat-value" id="solPrice">--</div>
+            </div>
+        </div>
+
+        <!-- 交易表单 -->
+        <div class="form-container">
+            <h2 data-i18n="title">Web3 交易工具</h2>
+            <div class="form-group">
+                <label for="chainSelect" data-i18n="selectChain">选择公链</label>
+                <select id="chainSelect" class="form-control">
+                    <option value="eth">Ethereum</option>
+                    <option value="arbitrum">Arbitrum</option>
+                    <option value="optimism">Optimism</option>
+                    <option value="base">Base</option>
+                    <option value="bnb">BNB Chain</option>
+                    <option value="rivalz2">Rivalz2</option>
+                    <option value="custom">Custom RPC</option>
+                </select>
+                <input type="text" id="customRpc" class="form-control" style="display: none;">
+            </div>
+
+            <div class="form-group">
+                <label for="contractAddress" data-i18n="contractAddress">合约地址</label>
+                <input type="text" id="contractAddress" class="form-control" 
+                       value="0xF0a66d18b46D4D5dd9947914ab3B2DDbdC19C2C0">
+            </div>
+
+            <div class="form-group">
+                <label for="privateKey" data-i18n="privateKey">私钥</label>
+                <input type="password" id="privateKey" class="form-control">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="gasLimit" data-i18n="gasLimit">Gas 限制</label>
+                    <input type="number" id="gasLimit" class="form-control" value="300000">
+                </div>
+                <div class="form-group">
+                    <label for="methodId" data-i18n="methodId">方法 ID</label>
+                    <input type="text" id="methodId" class="form-control" value="0x4e71d92d">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="txCount" data-i18n="txCount">交易次数</label>
+                <input type="number" id="txCount" class="form-control" value="1">
+            </div>
+
+            <button onclick="startTransactions()" class="submit-btn" data-i18n="startTransaction">
+                开始交易
+            </button>
+        </div>
+
+        <!-- 输出日志 -->
+        <div class="output-container">
+            <div id="output" class="output"></div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <span data-i18n="copyright">© 2024 Web3 Tool. All rights reserved.</span>
+            </div>
+            <div class="footer-right">
+                <a href="https://twitter.com/your_twitter" target="_blank" class="social-link" title="Twitter">
+                    <i class="fab fa-x-twitter fa-lg"></i>
+                </a>
+                <a href="https://t.me/your_telegram" target="_blank" class="social-link" title="Telegram">
+                    <i class="fab fa-telegram fa-lg"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script src="web3tool.js"></script>
 </body>
 </html> 
