@@ -271,6 +271,13 @@ const translations = {
 
 // 添加链的配置
 const chainConfigs = {
+    rivalz2: {
+        name: 'Rivalz2',
+        chainId: '0x1234',
+        rpcUrl: 'https://rivalz2.rpc.caldera.xyz',
+        symbol: 'RVZ',
+        explorer: 'https://rivalz2.explorer.caldera.xyz'
+    },
     eth: {
         name: '以太坊主网',
         chainId: '0x1',
@@ -305,13 +312,6 @@ const chainConfigs = {
         rpcUrl: 'https://bsc-dataseed.binance.org',
         symbol: 'BNB',
         explorer: 'https://bscscan.com'
-    },
-    rivalz2: {
-        name: 'Rivalz2',
-        chainId: '0x1234',
-        rpcUrl: 'https://rivalz2.rpc.caldera.xyz',
-        symbol: 'RVZ',
-        explorer: 'https://rivalz2.explorer.caldera.xyz'
     }
 };
 
@@ -372,7 +372,7 @@ async function connectWallet() {
             `;
             walletStatus.classList.add('connected');
 
-            // 连接成功后禁用私钥输入框并显示提示
+            // 连接成功后禁用私钥输入框
             const privateKeyInput = document.getElementById('privateKey');
             if (privateKeyInput) {
                 privateKeyInput.value = '已连接钱包，无需输入私钥';
@@ -381,10 +381,11 @@ async function connectWallet() {
                 privateKeyInput.style.color = '#666';
             }
 
-            // 设置事件监听器
-            if (window.ethereum) {
-                window.ethereum.on('accountsChanged', handleAccountsChanged);
-                window.ethereum.on('chainChanged', handleChainChanged);
+            // 尝试切换到 Rivalz2 网络
+            try {
+                await switchNetwork('rivalz2');
+            } catch (error) {
+                console.error('Failed to switch to Rivalz2:', error);
             }
 
             return accounts[0];
@@ -413,12 +414,10 @@ async function disconnectWallet() {
     }
 }
 
-// 添加网络切换功能
-async function switchNetwork() {
+// 修改网络切换函数
+async function switchNetwork(targetNetwork = 'rivalz2') {
     try {
-        const chainSelect = document.getElementById('chainSelect');
-        const selectedChain = chainConfigs[chainSelect.value];
-        
+        const selectedChain = chainConfigs[targetNetwork];
         if (!selectedChain) {
             throw new Error('未选择有效的网络');
         }
@@ -467,7 +466,7 @@ async function initializePage() {
         if (window.ethereum) {
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
             if (accounts.length > 0) {
-                // 如果已经连接了钱包，自动连接
+                // 如果已经连接了钱包，自动连接并切换到 Rivalz2
                 await connectWallet();
             }
         }
@@ -476,10 +475,6 @@ async function initializePage() {
         const chainSelect = document.getElementById('chainSelect');
         if (chainSelect) {
             chainSelect.value = 'rivalz2'; // 设置默认选择为 Rivalz2
-            
-            // 触发 change 事件以更新 RPC URL
-            const event = new Event('change');
-            chainSelect.dispatchEvent(event);
         }
 
         // 设置默认值
@@ -709,7 +704,7 @@ function handleAccountsChanged(accounts) {
     const privateKeyInput = document.getElementById('privateKey');
     
     if (accounts.length === 0) {
-        // 用户断开了钱包
+        // 用户断开��钱包
         isWalletConnected = false;
         document.getElementById('walletStatus').textContent = translations[currentLang].connectWallet;
         
