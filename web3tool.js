@@ -153,10 +153,11 @@ async function startTransactions() {
                     nonce: nonce
                 };
 
-                log(`发送交易 ${i}/${txCount}...`, 'pending');
+                log(`请在钱包中确认交易 ${i}/${txCount}...`, 'pending');
 
                 let receipt;
                 if (isWalletConnected) {
+                    // 使用 MetaMask 发送交易，会自动弹出签名确认
                     receipt = await window.ethereum.request({
                         method: 'eth_sendTransaction',
                         params: [tx],
@@ -165,7 +166,16 @@ async function startTransactions() {
                     
                     // 等待交易确认
                     log('等待交易确认...', 'pending');
-                    const confirmedReceipt = await web3.eth.getTransactionReceipt(receipt);
+                    let confirmedReceipt = null;
+                    while (!confirmedReceipt) {
+                        try {
+                            confirmedReceipt = await web3.eth.getTransactionReceipt(receipt);
+                            await sleep(2000); // 每2秒检查一次
+                        } catch (e) {
+                            console.log('等待确认中...');
+                        }
+                    }
+                    
                     if (confirmedReceipt.status) {
                         log(`交易 ${i} 已确认`, 'success');
                         log(`交易哈希: ${receipt}`, 'success');
@@ -175,6 +185,7 @@ async function startTransactions() {
                         throw new Error('交易执行失败');
                     }
                 } else {
+                    // 使用私钥发送交易
                     receipt = await web3.eth.sendTransaction(tx);
                     log(`交易 ${i} 已确认`, 'success');
                     log(`交易哈希: ${receipt.transactionHash}`, 'success');
@@ -188,6 +199,10 @@ async function startTransactions() {
                     await sleep(delay);
                 }
             } catch (error) {
+                if (error.code === 4001) {
+                    log('用户取消了交易签名', 'error');
+                    break;
+                }
                 log(`交易 ${i} 失败: ${error.message}`, 'error');
                 if (error.message.includes('insufficient funds')) {
                     log('错误原因: 余额不足', 'error');
@@ -361,16 +376,21 @@ async function connectWallet() {
             isWalletConnected = true;
             const shortAddress = `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
             
-            // 创建钱包状态下拉菜单
-            const walletStatus = document.getElementById('walletStatus');
-            walletStatus.innerHTML = `
+            // 更新钱包按钮状态和下拉菜单
+            const walletBtn = document.getElementById('connectWallet');
+            walletBtn.innerHTML = `
+                <i class="fas fa-wallet"></i>
                 <span>${shortAddress}</span>
                 <div class="wallet-dropdown">
-                    <button onclick="switchNetwork()" class="dropdown-item">切换网络</button>
-                    <button onclick="disconnectWallet()" class="dropdown-item">断开钱包</button>
+                    <button onclick="switchNetwork()" class="dropdown-item">
+                        <i class="fas fa-exchange-alt"></i> 切换网络
+                    </button>
+                    <button onclick="disconnectWallet()" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i> 断开连接
+                    </button>
                 </div>
             `;
-            walletStatus.classList.add('connected');
+            walletBtn.classList.add('connected');
 
             // 连接成功后禁用私钥输入框
             const privateKeyInput = document.getElementById('privateKey');
@@ -379,13 +399,6 @@ async function connectWallet() {
                 privateKeyInput.disabled = true;
                 privateKeyInput.style.backgroundColor = '#f5f5f5';
                 privateKeyInput.style.color = '#666';
-            }
-
-            // 尝试切换到 Rivalz2 网络
-            try {
-                await switchNetwork('rivalz2');
-            } catch (error) {
-                console.error('Failed to switch to Rivalz2:', error);
             }
 
             return accounts[0];
@@ -704,7 +717,7 @@ function handleAccountsChanged(accounts) {
     const privateKeyInput = document.getElementById('privateKey');
     
     if (accounts.length === 0) {
-        // 用户断开��钱包
+        // 用户断开钱包
         isWalletConnected = false;
         document.getElementById('walletStatus').textContent = translations[currentLang].connectWallet;
         
